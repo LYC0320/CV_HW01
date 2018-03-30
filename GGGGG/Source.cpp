@@ -3,10 +3,13 @@
 #include "opencv2\opencv.hpp"
 #include <math.h>
 #include <iostream>
+#include <time.h>
 using namespace cv;
 using namespace std;
 
 int tempI, tempJ;
+bool fMedB = false;
+float gMed = 0;
 
 void FeatureDection(Mat input, Mat feature)
 {
@@ -23,20 +26,31 @@ void FeatureDection(Mat input, Mat feature)
 	int indexI, indexJ;
 	float min = -10;
 
-	for (int i = cut / 2; i < featureDetection.rows - cut / 2; i++)
+	if (!fMedB) // compute gMed
 	{
-		for (int j = cut / 2; j < featureDetection.cols - cut / 2; j++)
+		for (int k = -cut / 2; k < cut / 2 + 1; k++)
+		{
+			for (int l = -cut / 2; l < cut / 2 + 1; l++)
+			{
+				gMed = gMed + (float)(eye.at<uchar>(k + cut / 2, l + cut / 2));
+			}
+		}
+		fMedB = true;
+	}
+
+	for (int i = cut / 2; i < featureDetection.rows - cut / 2; i++) //image
+	{
+		for (int j = cut / 2; j < featureDetection.cols - cut / 2; j++) //filter
 		{
 			float sum = 0;
 			float sum2 = 0;
 			float sum3 = 0;
-			float gMed = 0, fMed = 0;
+			float fMed = 0;
 
 			for (int k = -cut / 2; k < cut / 2 + 1; k++)
 			{
 				for (int l = -cut / 2; l < cut / 2 + 1; l++)
 				{
-					gMed = gMed + (float)(eye.at<uchar>(k + cut / 2, l + cut / 2));
 					fMed = fMed + (float)(featureDetection.at<uchar>(i + k, j + l));
 				}
 			}
@@ -85,11 +99,13 @@ int main(){
 	string pictureName;
 	string featureName;
 
-	cout << "Please input the file name of picture :" << endl;
+	cout << "Please input the file name of picture:" << endl;
 	cin >> pictureName;
-	cout << "Please input the file name of feature :" << endl;
+	cout << "Please input the file name of feature:" << endl;
 	cin >> featureName;
 	cout << endl;
+
+	time_t s = time(NULL);
 
 	// Read input images
 	// Picture is in GGGGG\bin
@@ -144,7 +160,6 @@ int main(){
 	int index1[2];
 	int index2[2];
 	int index3[2];
-	
 	
 	FeatureDection(DstImg1,feature);
 	index1[0] = tempI;
@@ -224,6 +239,11 @@ int main(){
 	
 	// Write output images
 	imwrite("Final Output.jpg", finalOutput);
+
+	time_t e = time(NULL);
+
+	cout << endl;
+	cout << "Time cost:" << e - s << "s" << endl;
 
 	waitKey(0);
 	return 0;
